@@ -42,4 +42,15 @@ foreach ($script in @('install.ps1', 'uninstall.ps1')) {
   if ($errors.Count -gt 0) { throw "$script has PowerShell syntax errors: $($errors -join '; ')" }
 }
 
+$installer = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'install.ps1') -Raw
+foreach ($requiredDarkToken in @(
+  '--color-token-foreground',
+  '--color-token-input-placeholder-foreground',
+  '--color-token-dropdown-background'
+)) {
+  if (-not $installer.Contains($requiredDarkToken)) {
+    throw "Dark-mode compatibility token is missing from install.ps1: $requiredDarkToken"
+  }
+}
+
 Write-Host 'PASS: two themes, nine PNG icons, and PowerShell scripts are valid.'

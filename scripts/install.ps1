@@ -60,6 +60,31 @@ $rules = New-Object System.Collections.Generic.List[string]
 $rules.Add($MarkerStart)
 $rules.Add('html.codex-dream-skin.dream-icons-cartoon [data-dream-cartoon-icon] > svg { display: none !important; }')
 $rules.Add('html.codex-dream-skin.dream-icons-cartoon [data-dream-cartoon-icon]::before { content: ""; display: inline-grid; width: 40px; height: 40px; flex: 0 0 40px; }')
+$rules.Add('html.codex-dream-skin.dream-theme-dark {')
+$rules.Add('  --color-token-foreground: var(--dream-text) !important;')
+$rules.Add('  --color-token-text-primary: var(--dream-text) !important;')
+$rules.Add('  --color-token-text-secondary: color-mix(in oklab, var(--dream-text) 78%, transparent) !important;')
+$rules.Add('  --color-token-text-tertiary: var(--dream-text-muted) !important;')
+$rules.Add('  --color-token-description-foreground: var(--dream-text-muted) !important;')
+$rules.Add('  --color-token-disabled-foreground: color-mix(in oklab, var(--dream-text-muted) 72%, transparent) !important;')
+$rules.Add('  --color-token-icon-foreground: var(--dream-text) !important;')
+$rules.Add('  --color-token-dropdown-foreground: var(--dream-text) !important;')
+$rules.Add('  --color-token-input-foreground: var(--dream-text) !important;')
+$rules.Add('  --color-token-input-placeholder-foreground: var(--dream-text-muted) !important;')
+$rules.Add('  --color-token-editor-foreground: var(--dream-text) !important;')
+$rules.Add('  --color-token-terminal-foreground: var(--dream-text) !important;')
+$rules.Add('  --color-token-text-preformat-foreground: var(--dream-text) !important;')
+$rules.Add('  --color-token-checkbox-foreground: var(--dream-text) !important;')
+$rules.Add('  --color-token-radio-active-foreground: var(--dream-text) !important;')
+$rules.Add('  --color-token-list-active-selection-foreground: var(--dream-text) !important;')
+$rules.Add('  --color-token-list-active-selection-icon-foreground: var(--dream-text) !important;')
+$rules.Add('  --color-token-menubar-selection-foreground: var(--dream-text) !important;')
+$rules.Add('  --color-token-dropdown-background: var(--dream-surface-raised) !important;')
+$rules.Add('  --color-token-input-background: var(--dream-immersive-composer) !important;')
+$rules.Add('  --color-token-main-surface-primary: var(--dream-surface) !important;')
+$rules.Add('  --color-token-text-code-block-background: var(--dream-surface-raised) !important;')
+$rules.Add('  --color-token-text-preformat-background: var(--dream-surface-raised) !important;')
+$rules.Add('}')
 foreach ($entry in $iconMap.GetEnumerator()) {
   $iconPath = Join-Path (Join-Path $RepoRoot 'icons') $entry.Value
   if (-not (Test-Path -LiteralPath $iconPath -PathType Leaf)) {
@@ -99,4 +124,3 @@ if (-not $NoRestart) {
 
 Write-Host 'Installed Pikachu light and dark themes.'
 if ($Apply -ne 'none') { Write-Host "Applied theme variant: $Apply" }
-
