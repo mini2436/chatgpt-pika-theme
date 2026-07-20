@@ -2,33 +2,51 @@
 param(
   [ValidateSet('light', 'dark', 'none')]
   [string]$Apply = 'light',
-  [string]$StudioRoot = (Join-Path $env:LOCALAPPDATA 'CodexDreamSkinStudio'),
+  [string]$StudioRoot,
   [switch]$NoRestart
 )
 
 $ErrorActionPreference = 'Stop'
 $RepoRoot = [System.IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
+if ([string]::IsNullOrWhiteSpace($StudioRoot)) {
+  $candidates = @(
+    (Join-Path $env:LOCALAPPDATA 'CodexDreamSkin\engine'),
+    (Join-Path $env:LOCALAPPDATA 'CodexDreamSkinStudio')
+  )
+  $StudioRoot = $candidates | Where-Object { Test-Path -LiteralPath $_ -PathType Container } |
+    Select-Object -First 1
+  if (-not $StudioRoot) { $StudioRoot = $candidates[0] }
+}
 $StudioRoot = [System.IO.Path]::GetFullPath($StudioRoot)
 $StateRoot = Join-Path $env:LOCALAPPDATA 'CodexDreamSkin'
 $ThemesRoot = Join-Path $StateRoot 'themes'
 $CssPath = Join-Path $StudioRoot 'assets\dream-skin.css'
 $RendererPath = Join-Path $StudioRoot 'assets\renderer-inject.js'
+$InjectorPath = Join-Path $StudioRoot 'scripts\injector.mjs'
 $CommonScript = Join-Path $StudioRoot 'scripts\common-windows.ps1'
 $ThemeScript = Join-Path $StudioRoot 'scripts\theme-windows.ps1'
 $StartScript = Join-Path $StudioRoot 'scripts\start-dream-skin.ps1'
 $MarkerStart = '/* chatgpt-pika-theme:start */'
 $MarkerEnd = '/* chatgpt-pika-theme:end */'
 
-foreach ($required in @($CssPath, $RendererPath, $CommonScript, $ThemeScript, $StartScript)) {
+foreach ($required in @($CssPath, $RendererPath, $InjectorPath, $CommonScript, $ThemeScript, $StartScript)) {
   if (-not (Test-Path -LiteralPath $required -PathType Leaf)) {
     throw "Codex Dream Skin Studio file not found: $required"
   }
 }
 
 $renderer = [System.IO.File]::ReadAllText($RendererPath)
+$injector = [System.IO.File]::ReadAllText($InjectorPath)
 $css = [System.IO.File]::ReadAllText($CssPath)
-if ($renderer -notmatch 'data-dream-cartoon-icon' -or $css -notmatch 'dream-icons-cartoon') {
-  throw 'This Dream Skin Studio build does not support theme-owned cartoon icons. Update the Studio before installing this pack.'
+if ($renderer -notmatch 'data-dream-cartoon-icon' -or $renderer -notmatch 'dream-icons-cartoon' -or
+    $injector -notmatch 'iconStyle: new Set' -or $injector -notmatch 'copy\.homeTitle') {
+  & (Join-Path $PSScriptRoot 'enable-studio-compat.ps1') -StudioRoot $StudioRoot
+  $renderer = [System.IO.File]::ReadAllText($RendererPath)
+  $injector = [System.IO.File]::ReadAllText($InjectorPath)
+  if ($renderer -notmatch 'data-dream-cartoon-icon' -or $renderer -notmatch 'dream-icons-cartoon' -or
+      $injector -notmatch 'iconStyle: new Set' -or $injector -notmatch 'copy\.homeTitle') {
+    throw 'Codex Dream Skin compatibility patch completed without exposing the required theme fields.'
+  }
 }
 
 New-Item -ItemType Directory -Force -Path $ThemesRoot | Out-Null
@@ -58,8 +76,10 @@ $iconMap = [ordered]@{
 
 $rules = New-Object System.Collections.Generic.List[string]
 $rules.Add($MarkerStart)
+$rules.Add('html.codex-dream-skin.dream-icons-cartoon { --pika-cartoon-icon-size: clamp(28px, var(--height-token-row, 32px), 34px); }')
+$rules.Add('html.codex-dream-skin.dream-icons-cartoon [data-dream-cartoon-icon]:not(button):not(a) { width: var(--pika-cartoon-icon-size) !important; height: var(--pika-cartoon-icon-size) !important; flex: 0 0 var(--pika-cartoon-icon-size) !important; }')
 $rules.Add('html.codex-dream-skin.dream-icons-cartoon [data-dream-cartoon-icon] > svg { display: none !important; }')
-$rules.Add('html.codex-dream-skin.dream-icons-cartoon [data-dream-cartoon-icon]::before { content: ""; display: inline-grid; width: 40px; height: 40px; flex: 0 0 40px; }')
+$rules.Add('html.codex-dream-skin.dream-icons-cartoon [data-dream-cartoon-icon]::before { content: ""; display: inline-grid; width: var(--pika-cartoon-icon-size); height: var(--pika-cartoon-icon-size); flex: 0 0 var(--pika-cartoon-icon-size); }')
 $rules.Add('html.codex-dream-skin.dream-theme-dark {')
 $rules.Add('  --color-token-foreground: var(--dream-text) !important;')
 $rules.Add('  --color-token-text-primary: var(--dream-text) !important;')
@@ -113,11 +133,11 @@ if ($Apply -ne 'none') {
 }
 
 if (-not $NoRestart) {
-  $pwsh = Get-Command pwsh -ErrorAction SilentlyContinue
-  if ($null -ne $pwsh) {
-    & $pwsh.Source -NoProfile -ExecutionPolicy Bypass -File $StartScript
+  $windowsPowerShell = Get-Command powershell.exe -ErrorAction SilentlyContinue
+  if ($null -ne $windowsPowerShell) {
+    & $windowsPowerShell.Source -NoProfile -ExecutionPolicy Bypass -File $StartScript
   } else {
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $StartScript
+    & pwsh -NoProfile -ExecutionPolicy Bypass -File $StartScript
   }
   if ($LASTEXITCODE -ne 0) { throw "Dream Skin restart failed with exit code $LASTEXITCODE" }
 }

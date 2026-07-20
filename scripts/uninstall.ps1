@@ -1,10 +1,19 @@
 [CmdletBinding()]
 param(
-  [string]$StudioRoot = (Join-Path $env:LOCALAPPDATA 'CodexDreamSkinStudio'),
+  [string]$StudioRoot,
   [switch]$NoRestart
 )
 
 $ErrorActionPreference = 'Stop'
+if ([string]::IsNullOrWhiteSpace($StudioRoot)) {
+  $candidates = @(
+    (Join-Path $env:LOCALAPPDATA 'CodexDreamSkin\engine'),
+    (Join-Path $env:LOCALAPPDATA 'CodexDreamSkinStudio')
+  )
+  $StudioRoot = $candidates | Where-Object { Test-Path -LiteralPath $_ -PathType Container } |
+    Select-Object -First 1
+  if (-not $StudioRoot) { $StudioRoot = $candidates[0] }
+}
 $StudioRoot = [System.IO.Path]::GetFullPath($StudioRoot)
 $StateRoot = Join-Path $env:LOCALAPPDATA 'CodexDreamSkin'
 $ThemesRoot = [System.IO.Path]::GetFullPath((Join-Path $StateRoot 'themes'))
@@ -33,11 +42,11 @@ if (Test-Path -LiteralPath $CssPath -PathType Leaf) {
 }
 
 if (-not $NoRestart -and (Test-Path -LiteralPath $StartScript -PathType Leaf)) {
-  $pwsh = Get-Command pwsh -ErrorAction SilentlyContinue
-  if ($null -ne $pwsh) {
-    & $pwsh.Source -NoProfile -ExecutionPolicy Bypass -File $StartScript
+  $windowsPowerShell = Get-Command powershell.exe -ErrorAction SilentlyContinue
+  if ($null -ne $windowsPowerShell) {
+    & $windowsPowerShell.Source -NoProfile -ExecutionPolicy Bypass -File $StartScript
   } else {
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $StartScript
+    & pwsh -NoProfile -ExecutionPolicy Bypass -File $StartScript
   }
   if ($LASTEXITCODE -ne 0) { throw "Dream Skin restart failed with exit code $LASTEXITCODE" }
 }

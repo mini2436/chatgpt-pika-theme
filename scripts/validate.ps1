@@ -34,7 +34,7 @@ foreach ($icon in $expectedIcons) {
   }
 }
 
-foreach ($script in @('install.ps1', 'uninstall.ps1')) {
+foreach ($script in @('install.ps1', 'uninstall.ps1', 'enable-studio-compat.ps1')) {
   $path = Join-Path $PSScriptRoot $script
   $tokens = $null
   $errors = $null
@@ -43,6 +43,16 @@ foreach ($script in @('install.ps1', 'uninstall.ps1')) {
 }
 
 $installer = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'install.ps1') -Raw
+foreach ($requiredInstallerToken in @(
+  '--pika-cartoon-icon-size',
+  'CodexDreamSkin\engine',
+  'enable-studio-compat.ps1',
+  'powershell.exe'
+)) {
+  if (-not $installer.Contains($requiredInstallerToken)) {
+    throw "Installer compatibility token is missing from install.ps1: $requiredInstallerToken"
+  }
+}
 foreach ($requiredDarkToken in @(
   '--color-token-foreground',
   '--color-token-input-placeholder-foreground',
@@ -53,4 +63,4 @@ foreach ($requiredDarkToken in @(
   }
 }
 
-Write-Host 'PASS: two themes, nine PNG icons, and PowerShell scripts are valid.'
+Write-Host 'PASS: two themes, nine PNG icons, adaptive sizing, compatibility patching, and PowerShell scripts are valid.'
