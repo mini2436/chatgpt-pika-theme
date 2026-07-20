@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "preset-pikachu-light",
+  "name": "皮卡丘·电光实验室（浅色）",
+  "brandSubtitle": "PIKACHU ELECTRIC LAB",
+  "tagline": "让今天的灵感带电。",
+  "projectPrefix": "选择项目 · ",
+  "projectLabel": "⚡  选择项目",
+  "statusText": "ELECTRIC MODE ONLINE",
+  "quote": "MAKE IDEAS SPARK",
+  "image": "background.png",
+  "appearance": "light",
+  "icons": {
+    "style": "cartoon"
+  },
+  "copy": {
+    "homeTitle": "皮卡皮卡！今日电力满格，十万伏特！⚡"
+  },
+  "art": {
+    "focusX": 0.78,
+    "focusY": 0.58,
+    "safeArea": "left",
+    "taskMode": "ambient"
+  }
+}
+
