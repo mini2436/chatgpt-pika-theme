@@ -61,6 +61,9 @@ foreach ($requiredInstallerToken in @(
   '[class~="bg-token-main-surface-primary"][class~="border-l"]',
   'CodexDreamSkin\engine',
   'enable-studio-compat.ps1',
+  'dream-shell-sidebar-optional',
+  'dream-shell-sidebar-probe-optional',
+  'dream-shell-sidebar-verify-optional',
   'powershell.exe'
 )) {
   if (-not $installer.Contains($requiredInstallerToken)) {

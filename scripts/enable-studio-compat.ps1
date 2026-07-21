@@ -42,11 +42,14 @@ $renderer = [System.IO.File]::ReadAllText($RendererPath).Replace("`r`n", "`n")
 $injector = [System.IO.File]::ReadAllText($InjectorPath).Replace("`r`n", "`n")
 $rendererReady = $renderer.Contains('data-dream-cartoon-icon') -and
   $renderer.Contains('dream-icons-cartoon') -and $renderer.Contains('copy?.homeTitle')
+$sidebarToggleReady = $renderer.Contains('dream-shell-sidebar-optional')
 $injectorReady = $injector.Contains('iconStyle: new Set(["native", "cartoon"])') -and
   $injector.Contains('copy.homeTitle')
+$injectorSidebarReady = $injector.Contains('dream-shell-sidebar-probe-optional') -and
+  $injector.Contains('dream-shell-sidebar-verify-optional')
 
-if ($rendererReady -and $injectorReady) {
-  Write-Host 'Codex Dream Skin already supports Pikachu cartoon icons and home copy.'
+if ($rendererReady -and $sidebarToggleReady -and $injectorReady -and $injectorSidebarReady) {
+  Write-Host 'Codex Dream Skin already supports Pikachu fields and collapsed-sidebar persistence.'
   return
 }
 if (($renderer.Contains('data-dream-cartoon-icon') -or $renderer.Contains('dream-icons-cartoon')) -and
@@ -202,6 +205,25 @@ if (-not $rendererReady) {
 '@ 'renderer ensure hooks'
 }
 
+if (-not $sidebarToggleReady) {
+  $renderer = Replace-RequiredText $renderer @'
+    const shellMain = document.querySelector("main.main-surface");
+    const shellSidebar = document.querySelector("aside.app-shell-left-panel");
+    if (!shellMain || !shellSidebar) {
+      clearSkinDom();
+      return;
+    }
+'@ @'
+    const shellMain = document.querySelector("main.main-surface");
+    const shellSidebar = document.querySelector("aside.app-shell-left-panel");
+    // dream-shell-sidebar-optional: Codex removes the left panel while it is collapsed.
+    if (!shellMain) {
+      clearSkinDom();
+      return;
+    }
+'@ 'renderer collapsed-sidebar guard'
+}
+
 if (-not $injectorReady) {
   $injector = Replace-RequiredText $injector @'
   taskMode: new Set(["auto", "ambient", "banner", "off"]),
@@ -243,9 +265,39 @@ if (-not $injectorReady) {
 '@ 'injector sanitized theme fields'
 }
 
-$node = Get-Command node -ErrorAction SilentlyContinue
-if (-not $node) { throw 'Node.js 22 or newer is required to validate the Studio compatibility patch.' }
-$nodeVersion = (& $node.Source --version).Trim().TrimStart('v')
+$nodePath = Join-Path $StudioRoot 'runtime\node.exe'
+if (-not (Test-Path -LiteralPath $nodePath -PathType Leaf)) {
+  $node = Get-Command node -ErrorAction SilentlyContinue
+  if (-not $node) { throw 'Node.js 22 or newer is required to validate the Studio compatibility patch.' }
+  $nodePath = $node.Source
+}
+
+if (-not $injectorSidebarReady) {
+  $injector = Replace-RequiredText $injector @'
+    return {
+      markers,
+      codex: location.protocol === 'app:' && markers.shell && markers.sidebar && (markers.composer || markers.main),
+    };
+'@ @'
+    return {
+      markers,
+      // dream-shell-sidebar-probe-optional: the left panel is absent while collapsed.
+      codex: location.protocol === 'app:' && markers.shell && (markers.composer || markers.main),
+    };
+'@ 'injector collapsed-sidebar probe'
+
+  $injector = Replace-RequiredText $injector @'
+      result.stylePresent && result.chromePresent &&
+      result.chromePointerEvents === 'none' && Boolean(result.composer) && Boolean(result.sidebar) &&
+      (!result.homePresent || (Boolean(result.hero) &&
+'@ @'
+      result.stylePresent && result.chromePresent &&
+      result.chromePointerEvents === 'none' && Boolean(result.composer) &&
+      // dream-shell-sidebar-verify-optional: sidebar absence is a valid collapsed state.
+      (!result.homePresent || (Boolean(result.hero) &&
+'@ 'injector collapsed-sidebar verification'
+}
+$nodeVersion = (& $nodePath --version).Trim().TrimStart('v')
 $nodeMajor = [int]($nodeVersion.Split('.')[0])
 if ($nodeMajor -lt 22) { throw "Node.js 22 or newer is required; found $nodeVersion." }
 
@@ -256,9 +308,9 @@ $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 try {
   [System.IO.File]::WriteAllText($temporaryRenderer, $renderer, $utf8NoBom)
   [System.IO.File]::WriteAllText($temporaryInjector, $injector, $utf8NoBom)
-  & $node.Source --check $temporaryRenderer
+  & $nodePath --check $temporaryRenderer
   if ($LASTEXITCODE -ne 0) { throw 'Patched renderer-inject.js failed syntax validation.' }
-  & $node.Source --check $temporaryInjector
+  & $nodePath --check $temporaryInjector
   if ($LASTEXITCODE -ne 0) { throw 'Patched injector.mjs failed syntax validation.' }
 
   foreach ($path in @($RendererPath, $InjectorPath)) {
@@ -271,4 +323,4 @@ try {
   Remove-Item -LiteralPath $temporaryRenderer, $temporaryInjector -Force -ErrorAction SilentlyContinue
 }
 
-Write-Host 'Enabled Pikachu cartoon-icon and home-copy support in Codex Dream Skin.'
+Write-Host 'Enabled Pikachu fields and collapsed-sidebar persistence in Codex Dream Skin.'

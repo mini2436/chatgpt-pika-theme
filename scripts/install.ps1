@@ -39,13 +39,17 @@ $renderer = [System.IO.File]::ReadAllText($RendererPath)
 $injector = [System.IO.File]::ReadAllText($InjectorPath)
 $css = [System.IO.File]::ReadAllText($CssPath)
 if ($renderer -notmatch 'data-dream-cartoon-icon' -or $renderer -notmatch 'dream-icons-cartoon' -or
-    $injector -notmatch 'iconStyle: new Set' -or $injector -notmatch 'copy\.homeTitle') {
+    $renderer -notmatch 'dream-shell-sidebar-optional' -or $injector -notmatch 'iconStyle: new Set' -or
+    $injector -notmatch 'copy\.homeTitle' -or $injector -notmatch 'dream-shell-sidebar-probe-optional' -or
+    $injector -notmatch 'dream-shell-sidebar-verify-optional') {
   & (Join-Path $PSScriptRoot 'enable-studio-compat.ps1') -StudioRoot $StudioRoot
   $renderer = [System.IO.File]::ReadAllText($RendererPath)
   $injector = [System.IO.File]::ReadAllText($InjectorPath)
   if ($renderer -notmatch 'data-dream-cartoon-icon' -or $renderer -notmatch 'dream-icons-cartoon' -or
-      $injector -notmatch 'iconStyle: new Set' -or $injector -notmatch 'copy\.homeTitle') {
-    throw 'Codex Dream Skin compatibility patch completed without exposing the required theme fields.'
+      $renderer -notmatch 'dream-shell-sidebar-optional' -or $injector -notmatch 'iconStyle: new Set' -or
+      $injector -notmatch 'copy\.homeTitle' -or $injector -notmatch 'dream-shell-sidebar-probe-optional' -or
+      $injector -notmatch 'dream-shell-sidebar-verify-optional') {
+    throw 'Codex Dream Skin compatibility patch completed without exposing the required theme fields and sidebar behavior.'
   }
 }
 
@@ -135,7 +139,8 @@ $rules.Add('  --pika-utility-text: oklch(0.93 0.02 95);')
 $rules.Add('  --pika-utility-text-muted: oklch(0.74 0.05 90);')
 $rules.Add('  --pika-utility-accent: oklch(0.82 0.16 95);')
 $rules.Add('}')
-$rules.Add('html.codex-dream-skin.dream-icons-cartoon div:has(> aside.app-shell-left-panel + main.main-surface) {')
+$rules.Add('html.codex-dream-skin.dream-icons-cartoon div:has(> aside.app-shell-left-panel + main.main-surface),')
+$rules.Add('html.codex-dream-skin.dream-icons-cartoon div:has(> main.main-surface):not(:has(> aside.app-shell-left-panel)) {')
 $rules.Add('  gap: var(--pika-shell-gap) !important;')
 $rules.Add('  padding: var(--pika-shell-inset) !important;')
 $rules.Add('  background: transparent !important;')
