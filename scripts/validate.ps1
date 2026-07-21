@@ -45,6 +45,20 @@ foreach ($script in @('install.ps1', 'uninstall.ps1', 'enable-studio-compat.ps1'
 $installer = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'install.ps1') -Raw
 foreach ($requiredInstallerToken in @(
   '--pika-cartoon-icon-size',
+  '--pika-electric-yellow',
+  '--pika-panel-radius',
+  '--pika-shell-gap',
+  '--pika-sidebar-panel',
+  '--pika-main-panel',
+  '--pika-utility-surface',
+  '--pika-utility-text',
+  '--pika-utility-accent',
+  '--color-token-text-quaternary',
+  '--color-token-conversation-summary-trailing',
+  'aside.app-shell-left-panel + main.main-surface',
+  'main.main-surface > header.app-header-tint',
+  '[class~="rounded-3xl"][class~="bg-token-dropdown-background"]',
+  '[class~="bg-token-main-surface-primary"][class~="border-l"]',
   'CodexDreamSkin\engine',
   'enable-studio-compat.ps1',
   'powershell.exe'
@@ -63,4 +77,4 @@ foreach ($requiredDarkToken in @(
   }
 }
 
-Write-Host 'PASS: two themes, nine PNG icons, adaptive sizing, compatibility patching, and PowerShell scripts are valid.'
+Write-Host 'PASS: two themes, nine PNG icons, adaptive sizing, rounded yellow panels, themed utility surfaces, compatibility patching, and PowerShell scripts are valid.'

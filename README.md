@@ -9,6 +9,8 @@ Codex Dream Skin 运行。
 - `皮卡丘·电光实验室（浅色）`
 - `皮卡丘·电光实验室（深色）`
 - 9 枚自绘卡通侧边栏图标
+- 彼此留有间距的圆角侧边栏与会话主面板，并保留克制的皮卡丘黄色调
+- 与皮卡丘黄、琥珀边线和深棕文字统一的摘要卡片与右侧工具栏
 - 深色任务页、输入框底栏和输出面板文字兼容
 - 根据 Codex 实际侧栏行高自动缩放的图标（约 `28–34px`）
 - 当前公开版 Dream Skin 所需的卡通图标 / 首页文案兼容补丁
@@ -116,7 +118,8 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Apply light
 2. 检查 Dream Skin 是否能把 `icons.style` 和 `copy.homeTitle` 传给渲染器。
 3. 对当前公开版缺少的接口做有锚点检查的最小兼容补丁。
 4. 用 Node.js `--check` 验证补丁后的 JavaScript，再写入文件。
-5. 备份原文件、安装浅色和深色主题、嵌入 9 枚 PNG，并应用所选变体。
+5. 备份原文件、安装浅色和深色主题、嵌入 9 枚 PNG 与圆角黄色面板样式，
+   并应用所选变体。
 6. 使用 Windows PowerShell 重新应用主题，避免 PowerShell 7 无法加载
    `Get-AppxPackage` 的问题。
 
