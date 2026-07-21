@@ -18,7 +18,13 @@ Codex Dream Skin 运行。
 
 ## Codex 实际效果
 
+### 浅色主题
+
 ![皮卡丘浅色主题 Codex 实际效果](previews/pikachu-light-codex.png)
+
+### 深色主题
+
+![皮卡丘深色主题 Codex 实际效果](previews/pikachu-dark-codex.png)
 
 ## 背景预览
 
